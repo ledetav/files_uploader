@@ -217,6 +217,11 @@
       <input type="file" id="fileInput" hidden>
     </div>
 
+    <div class="input-group">
+      <label for="secretKey">Пароль для загрузки</label>
+      <input type="password" id="secretKey" class="text-input" placeholder="Введи секретный ключ">
+    </div>
+
     <button class="btn" id="uploadBtn" disabled>Загрузить на Диск</button>
 
     <div class="progress-wrap" id="progressWrap">
@@ -248,6 +253,14 @@
     const progressText = document.getElementById('progressText');
     const progressPercent = document.getElementById('progressPercent');
     const messageBox = document.getElementById('messageBox');
+
+    const secretKeyInput = document.getElementById('secretKey');
+
+    // Если в URL передан параметр ?key=..., сразу подставляем его в поле
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('key')) {
+      secretKeyInput.value = urlParams.get('key');
+    }
 
     let selectedFile = null;
 
@@ -324,15 +337,16 @@
         // 1. Запрашиваем одноразовый URL загрузки у нашего Google Apps Script
         // Используем text/plain, чтобы браузер не слал CORS preflight OPTIONS к Apps Script
         const initRes = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            fileName: finalFileName,
-            mimeType: selectedFile.type || 'application/octet-stream',
-            fileSize: selectedFile.size,
-            origin: window.location.origin
-          })
-        });
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          key: secretKeyInput.value.trim(), // <--- отправляем введенный ключ
+          fileName: finalFileName,
+          mimeType: selectedFile.type || 'application/octet-stream',
+          fileSize: selectedFile.size,
+          origin: window.location.origin
+        })
+      });
 
         const initData = await initRes.json();
         if (!initData.ok || !initData.uploadUrl) {
