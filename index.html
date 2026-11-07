@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Загрузка файла</title>
+  <style>
+    :root {
+      --bg: #121318;
+      --card: #1c1e26;
+      --border: #2e3240;
+      --accent: #6c8cff;
+      --accent-hover: #839eff;
+      --text: #eceef4;
+      --muted: #8b92a8;
+      --error: #ff6b6b;
+      --success: #51cf66;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .text-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .text-input:focus {
+      border-color: var(--accent);
+    }
+
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.01);
+      margin-bottom: 18px;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: rgba(108, 140, 255, 0.06);
+    }
+
+    .dropzone-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .dropzone-text {
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .dropzone-hint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .file-info {
+      font-size: 13px;
+      color: var(--accent);
+      margin-top: 10px;
+      word-break: break-all;
+      font-weight: 500;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .progress-wrap {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--bg);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.15s ease;
+    }
+
+    .progress-status {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .message {
+      margin-top: 14px;
+      font-size: 13px;
+      line-height: 1.4;
+      padding: 10px 12px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .message.error {
+      display: block;
+      background: rgba(255, 107, 107, 0.12);
+      color: var(--error);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+
+    .message.success {
+      display: block;
+      background: rgba(81, 207, 102, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(81, 207, 102, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Отправить файл</h1>
+    <p class="subtitle">Файл сразу попадет в папку на Google Диске (максимум 50 МБ)</p>
+
+    <div class="input-group">
+      <label for="senderName">От кого / подпись (необязательно)</label>
+      <input type="text" id="senderName" class="text-input" placeholder="Например: ник или имя">
+    </div>
+
+    <div class="dropzone" id="dropzone">
+      <span class="dropzone-icon">📁</span>
+      <div class="dropzone-text">Перетащи файл сюда или нажми для выбора</div>
+      <div class="dropzone-hint">Любой формат до 50 МБ</div>
+      <div class="file-info" id="fileInfo"></div>
+      <input type="file" id="fileInput" hidden>
+    </div>
+
+    <button class="btn" id="uploadBtn" disabled>Загрузить на Диск</button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-status">
+        <span id="progressText">Подготовка...</span>
+        <span id="progressPercent">0%</span>
+      </div>
+    </div>
+
+    <div class="message" id="messageBox"></div>
+  </div>
+
+  <script>
+    // ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT (заканчивается на /exec)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz95O2RiQ0vLZRz4Pq4Fz4G0c56IimMmpBkh712oZw2008cBgICy02k3NLPgMJuilA/exec';
+
+    const MAX_SIZE = 50 * 1024 * 1024; // 50 МБ
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const senderName = document.getElementById('senderName');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const progressWrap = document.getElementById('progressWrap');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
+    const messageBox = document.getElementById('messageBox');
+
+    let selectedFile = null;
+
+    function formatMB(bytes) {
+      return (bytes / (1024 * 1024)).toFixed(2) + ' МБ';
+    }
+
+    function showMessage(text, type) {
+      messageBox.textContent = text;
+      messageBox.className = 'message ' + type;
+    }
+
+    function clearMessage() {
+      messageBox.className = 'message';
+      messageBox.textContent = '';
+    }
+
+    function handleFileSelect(file) {
+      clearMessage();
+      if (!file) return;
+
+      if (file.size > MAX_SIZE) {
+        selectedFile = null;
+        fileInfo.textContent = '';
+        uploadBtn.disabled = true;
+        showMessage(`Файл слишком большой (${formatMB(file.size)}). Лимит — 50 МБ.`, 'error');
+        return;
+      }
+
+      selectedFile = file;
+      fileInfo.textContent = `${file.name} (${formatMB(file.size)})`;
+      uploadBtn.disabled = false;
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    uploadBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      clearMessage();
+      uploadBtn.disabled = true;
+      progressWrap.style.display = 'block';
+      progressFill.style.width = '0%';
+      progressText.textContent = 'Получаем сессию загрузки...';
+      progressPercent.textContent = '0%';
+
+      const prefix = senderName.value.trim();
+      const finalFileName = prefix ? `[${prefix}] ${selectedFile.name}` : selectedFile.name;
+
+      try {
+        // 1. Запрашиваем одноразовый URL загрузки у нашего Google Apps Script
+        // Используем text/plain, чтобы браузер не слал CORS preflight OPTIONS к Apps Script
+        const initRes = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            fileName: finalFileName,
+            mimeType: selectedFile.type || 'application/octet-stream',
+            fileSize: selectedFile.size,
+            origin: window.location.origin
+          })
+        });
+
+        const initData = await initRes.json();
+        if (!initData.ok || !initData.uploadUrl) {
+          throw new Error(initData.error || 'Не удалось получить ссылку для загрузки');
+        }
+
+        // 2. Отправляем сам бинарный файл напрямую в Google Drive с отслеживанием прогресса
+        await uploadBinaryToDrive(initData.uploadUrl, selectedFile);
+
+        progressFill.style.width = '100%';
+        progressPercent.textContent = '100%';
+        progressText.textContent = 'Готово!';
+        showMessage('Файл успешно загружен на Google Диск!', 'success');
+
+        selectedFile = null;
+        fileInput.value = '';
+        fileInfo.textContent = '';
+      } catch (err) {
+        showMessage('Ошибка: ' + err.message, 'error');
+        progressWrap.style.display = 'none';
+        uploadBtn.disabled = false;
+      }
+    });
+
+    function uploadBinaryToDrive(uploadUrl, file) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', uploadUrl, true);
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progressFill.style.width = percent + '%';
+            progressPercent.textContent = percent + '%';
+            progressText.textContent = `${formatMB(e.loaded)} из ${formatMB(e.total)}`;
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`Код ответа Google Drive: ${xhr.status}`));
+          }
+        };
+
+        xhr.onerror = () => {
+          reject(new Error('Сбой сети при передаче файла на Диск'));
+        };
+
+        xhr.send(file);
+      });
+    }
+  </script>
+</body>
+</html>
